@@ -20,11 +20,15 @@ serve(async (req) => {
   }
 
   try {
+    console.log('🚀 Generate-usecases function started');
     const { department, task }: UseCaseRequest = await req.json();
+    console.log(`📝 Request: Department="${department}", Task="${task}"`);
 
     if (!geminiApiKey) {
+      console.error('❌ Gemini API key not configured');
       throw new Error('Gemini API key not configured');
     }
+    console.log('✅ Gemini API key is configured');
 
     const fullPrompt = `You are an AI solutions expert specializing in department-specific automation and innovation. Your task is to generate practical AI use cases for a specific department and their challenges.
 
@@ -54,6 +58,7 @@ Please provide your response in the following JSON format (return ONLY the JSON,
   ]
 }`;
 
+    console.log('🔄 Making request to Gemini API...');
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
@@ -72,12 +77,24 @@ Please provide your response in the following JSON format (return ONLY the JSON,
       }),
     });
 
+    console.log(`📡 Gemini API response status: ${response.status}`);
+    
     if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ Gemini API error: ${response.status} - ${errorText}`);
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('✅ Received response from Gemini API');
+    
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      console.error('❌ Invalid response structure from Gemini API:', data);
+      throw new Error('Invalid response structure from Gemini API');
+    }
+    
     const result = data.candidates[0].content.parts[0].text;
+    console.log(`📄 Generated content length: ${result.length} characters`);
 
     // Enhanced JSON response parsing with intelligent fallback
     let usecaseResponse;

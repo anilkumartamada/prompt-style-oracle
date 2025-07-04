@@ -58,9 +58,10 @@ const UseCaseGenerator = () => {
       });
     } catch (error) {
       console.error('Error generating use cases:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "Generation Failed",
-        description: "Failed to generate use cases. Please try again.",
+        description: `Failed to generate use cases: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {
