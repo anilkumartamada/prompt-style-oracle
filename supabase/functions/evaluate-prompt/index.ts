@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,11 +22,11 @@ serve(async (req) => {
   try {
     const { prompt, selectedTechnique }: EvaluationRequest = await req.json();
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!geminiApiKey) {
+      throw new Error('Gemini API key not configured');
     }
 
-    const systemPrompt = `You are an expert in prompt engineering and AI prompting techniques. Your task is to evaluate whether a given prompt matches the selected prompting technique.
+    const fullPrompt = `You are an expert in prompt engineering and AI prompting techniques. Your task is to evaluate whether a given prompt matches the selected prompting technique.
 
 Prompting Techniques:
 1. One-shot: Contains exactly one example to guide the model
@@ -39,14 +39,7 @@ Evaluation Criteria:
 - Determine if the style matches the selected technique
 - For Chain-of-Thought: Look for step-by-step reasoning or requests for reasoning
 
-Response Format:
-{
-  "match": "Yes" or "No", 
-  "reason": "Detailed explanation mentioning number of examples, their relevance, and logic used",
-  "rating": "X/10 with brief explanation"
-}`;
-
-    const userPrompt = `Evaluate this prompt for the "${selectedTechnique}" technique:
+Evaluate this prompt for the "${selectedTechnique}" technique:
 
 PROMPT TO EVALUATE:
 """
@@ -55,36 +48,44 @@ ${prompt}
 
 SELECTED TECHNIQUE: ${selectedTechnique}
 
-Please analyze and provide your evaluation in the exact JSON format specified.`;
+Please analyze and provide your evaluation in the following JSON format (return ONLY the JSON, no other text):
+{
+  "match": "Yes" or "No", 
+  "reason": "Detailed explanation mentioning number of examples, their relevance, and logic used",
+  "rating": "X/10 with brief explanation"
+}`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 500
+        contents: [{
+          parts: [{
+            text: fullPrompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.3,
+          maxOutputTokens: 500,
+        }
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const result = data.choices[0].message.content;
+    const result = data.candidates[0].content.parts[0].text;
 
     // Try to parse the JSON response
     let evaluation;
     try {
-      evaluation = JSON.parse(result);
+      // Clean the response in case there's any markdown formatting
+      const cleanedResult = result.replace(/```json\n?|\n?```/g, '').trim();
+      evaluation = JSON.parse(cleanedResult);
     } catch (parseError) {
       // If JSON parsing fails, create a fallback response
       evaluation = {
