@@ -142,9 +142,9 @@ Please provide your response in the following JSON format (return ONLY the JSON,
       if (extractedUseCases.length === 0) {
         extractedUseCases = [{
           title: "AI-Powered Solution",
-          description: result.slice(0, 500) + "...",
-          benefits: "Enhanced productivity and automation",
-          implementation: "Implementation details provided in the analysis"
+          // description: result.slice(0, 500) + "...",
+          // benefits: "Enhanced productivity and automation",
+          // implementation: "Implementation details provided in the analysis"
         }];
       }
       
@@ -160,9 +160,9 @@ Please provide your response in the following JSON format (return ONLY the JSON,
       usecaseResponse = {
         usecases: [{
           title: "AI Solution Analysis",
-          description: result,
-          benefits: "AI-powered improvements for your department",
-          implementation: "Custom implementation based on your specific needs"
+          // description: result,
+          // benefits: "AI-powered improvements for your department",
+          // implementation: "Custom implementation based on your specific needs"
         }]
       };
     }
@@ -178,9 +178,9 @@ Please provide your response in the following JSON format (return ONLY the JSON,
         error: error.message,
         usecases: [{
           title: "Error in Generation",
-          description: "An error occurred while generating use cases: " + error.message,
-          benefits: "Please try again",
-          implementation: "N/A"
+          // description: "An error occurred while generating use cases: " + error.message,
+          // benefits: "Please try again",
+          // implementation: "N/A"
         }]
       }), 
       {
