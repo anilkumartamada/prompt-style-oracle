@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, User, History, BarChart3 } from "lucide-react";
+import { LogOut, User, History, BarChart3, Lightbulb } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -62,7 +62,15 @@ const Layout = ({ children }: LayoutProps) => {
                   className="flex items-center gap-2"
                 >
                   <BarChart3 className="h-4 w-4" />
-                  Evaluate
+                  Prompt Evaluation
+                </Button>
+                <Button
+                  variant={isActive('/usecases') ? 'default' : 'ghost'}
+                  onClick={() => navigate('/usecases')}
+                  className="flex items-center gap-2"
+                >
+                  <Lightbulb className="h-4 w-4" />
+                  Use Case Generator
                 </Button>
                 <Button
                   variant={isActive('/history') ? 'default' : 'ghost'}
