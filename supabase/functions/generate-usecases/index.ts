@@ -118,7 +118,7 @@ Please provide your response in the following JSON format (return ONLY the JSON,
       
       // Try to extract structured use cases from the text
       const usecasePatterns = [
-        /(?:use case|solution|idea)\s*\d*[:.]\s*([^\n]+)\n([^]*?)(?=(?:use case|solution|idea)\s*\d*[:.])|\n\n|$)/gi,
+        /(?:use case|solution|idea)\s*\d*[:.]\s*([^\n]+)\n([^]*?)(?=(?:use case|solution|idea)\s*\d*[:.])|\n\n|$/gi,
         /\d+\.\s*([^\n]+)\n([^]*?)(?=\d+\.|$)/gi,
         /-\s*([^\n]+)\n([^]*?)(?=-\s*|$)/gi
       ];
