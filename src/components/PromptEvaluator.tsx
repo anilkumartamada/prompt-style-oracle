@@ -3,12 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Brain, Sparkles, Target, TrendingUp } from "lucide-react";
+import { Brain, Sparkles, Target, TrendingUp, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EvaluationResult {
   match: string;
@@ -19,9 +21,12 @@ interface EvaluationResult {
 const PromptEvaluator = () => {
   const [prompt, setPrompt] = useState('');
   const [technique, setTechnique] = useState('');
+  const [title, setTitle] = useState('');
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const techniques = [
     { value: 'one-shot', label: 'One-shot', description: 'Single example provided' },
@@ -64,9 +69,12 @@ const PromptEvaluator = () => {
       }
 
       setEvaluation(data);
+      // Automatically save to database after successful evaluation
+      await saveEvaluation(data);
+      
       toast({
         title: "Evaluation Complete",
-        description: "Your prompt has been analyzed successfully!",
+        description: "Your prompt has been analyzed and saved successfully!",
         variant: "default"
       });
     } catch (error) {
@@ -78,6 +86,54 @@ const PromptEvaluator = () => {
       });
     } finally {
       setIsEvaluating(false);
+    }
+  };
+
+  const saveEvaluation = async (evaluationData: EvaluationResult) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('prompt_evaluations')
+        .insert({
+          user_id: user.id,
+          title: title.trim() || null,
+          prompt_text: prompt.trim(),
+          selected_technique: technique,
+          evaluation_match: evaluationData.match,
+          evaluation_reason: evaluationData.reason,
+          evaluation_rating: evaluationData.rating
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving evaluation:', error);
+      toast({
+        title: "Save Failed",
+        description: "Evaluation completed but failed to save to your history.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleManualSave = async () => {
+    if (!evaluation || !user) return;
+    
+    setIsSaving(true);
+    try {
+      await saveEvaluation(evaluation);
+      toast({
+        title: "Saved",
+        description: "Evaluation saved to your history successfully!",
+      });
+    } catch (error) {
+      toast({
+        title: "Save Failed",
+        description: "Failed to save evaluation. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -153,6 +209,16 @@ const PromptEvaluator = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Evaluation Title (Optional)</Label>
+                <Input
+                  id="title"
+                  placeholder="Give your evaluation a memorable name..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="prompt">Write your AI prompt</Label>
                 <Textarea
@@ -232,6 +298,30 @@ const PromptEvaluator = () => {
                     >
                       {evaluation.rating}
                     </Badge>
+                  </div>
+
+                  <Separator />
+
+                  {/* Save Button */}
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={handleManualSave}
+                      disabled={isSaving}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      {isSaving ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          Save to History
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
               ) : (
