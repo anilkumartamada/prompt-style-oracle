@@ -50,10 +50,11 @@ Please provide your response in the following JSON format (return ONLY the JSON,
 {
   "usecases": [
     {
-      "title": "Brief descriptive title",
-      "description": "Detailed explanation of the AI solution, including what AI technology would be used and how it addresses the specific challenge",
-      "benefits": "Key benefits and improvements this solution would provide",
-      "implementation": "Brief overview of how this could be implemented"
+      "title": "Brief descriptive usecases based upon role",
+      
+      // "description": "Detailed explanation of the AI solution, including what AI technology would be used and how it addresses the specific challenge",
+      // "benefits": "Key benefits and improvements this solution would provide",
+      // "implementation": "Brief overview of how this could be implemented"
     }
   ]
 }`;
