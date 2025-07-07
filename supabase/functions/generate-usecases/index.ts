@@ -13,6 +13,10 @@ interface UseCaseRequest {
   task: string;
 }
 
+interface UseCase {
+  prompt: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -44,7 +48,7 @@ serve(async (req) => {
     const deptKey = department.toLowerCase();
     const deptContext = departmentContext[deptKey] || departmentContext[Object.keys(departmentContext).find(key => deptKey.includes(key))] || 'This department focuses on core business operations and workflows.';
 
-    const fullPrompt = `You are an expert AI solutions consultant specializing in department-specific automation and digital transformation. Your mission is to generate practical, actionable AI use cases tailored to specific departmental needs and challenges.
+    const fullPrompt = `You are an AI prompt generator specializing in creating concise, actionable AI use case prompts for different departments.
 
 DEPARTMENT CONTEXT: ${department}
 ${deptContext}
@@ -52,26 +56,23 @@ ${deptContext}
 SPECIFIC CHALLENGE: ${task}
 
 INSTRUCTIONS:
-Generate 3-5 detailed, department-specific AI use case solutions that directly address the challenge described. Each use case must be:
-- Highly relevant to ${department} workflows and responsibilities
-- Practically implementable with current AI technologies
-- Directly solving or improving the specific challenge mentioned
-- Detailed enough to be actionable for decision-makers
+Generate 3-5 short, actionable AI use case prompts that directly address the challenge for ${department}. Each prompt should be:
+- A single, clear action statement (10-15 words maximum)
+- Start with action verbs like "Create", "Build", "Develop", "Implement", "Design"
+- Specific to ${department} workflows and challenges
+- Immediately understandable and actionable
+- Professional and business-appropriate
 
-For each use case, provide:
-1. TITLE: Clear, role-specific name (e.g., "AI-Powered ${department} Solution for...")
-2. DESCRIPTION: Detailed explanation of the AI solution, specific technologies involved, and how it addresses the challenge
-3. BENEFITS: Concrete improvements, metrics, and value proposition
-4. IMPLEMENTATION: Practical steps, timeline, and resources needed
+Examples of good prompts:
+- "Create an AI chatbot to automate customer support inquiries"
+- "Build a predictive analytics system for inventory management"
+- "Develop automated email response templates using NLP"
 
 RESPONSE FORMAT (JSON only, no other text):
 {
   "usecases": [
     {
-      "title": "Specific AI solution title for ${department}",
-      "description": "Comprehensive explanation of the AI solution, including specific technologies (NLP, ML, computer vision, etc.), how it integrates with existing workflows, and how it directly solves the stated challenge",
-      "benefits": "Quantifiable benefits such as time savings, cost reduction, accuracy improvements, efficiency gains, and specific KPIs that will be impacted",
-      "implementation": "Step-by-step implementation approach, estimated timeline, required resources, potential challenges, and success metrics"
+      "prompt": "Action-oriented AI use case prompt for ${department}"
     }
   ]
 }`;
@@ -90,7 +91,7 @@ RESPONSE FORMAT (JSON only, no other text):
         }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 1500,
+          maxOutputTokens: 500,
         }
       }),
     });
@@ -134,22 +135,19 @@ RESPONSE FORMAT (JSON only, no other text):
       // Intelligent fallback: extract use cases from raw text
       const usecases = [];
       
-      // Try to extract structured use cases from the text
-      const usecasePatterns = [
-        /(?:use case|solution|idea)\s*\d*[:.]\s*([^\n]+)\n([^]*?)(?=(?:use case|solution|idea)\s*\d*[:.])|\n\n|$/gi,
-        /\d+\.\s*([^\n]+)\n([^]*?)(?=\d+\.|$)/gi,
-        /-\s*([^\n]+)\n([^]*?)(?=-\s*|$)/gi
+      // Try to extract prompts from the text
+      const promptPatterns = [
+        /(?:create|build|develop|implement|design)\s+[^.\n]+/gi,
+        /\d+\.\s*([^\n]+)/gi,
+        /-\s*([^\n]+)/gi
       ];
       
       let extractedUseCases = [];
-      for (const pattern of usecasePatterns) {
+      for (const pattern of promptPatterns) {
         const matches = [...result.matchAll(pattern)];
         if (matches.length > 0) {
           extractedUseCases = matches.map(match => ({
-            title: match[1]?.trim() || "AI Solution",
-            description: match[2]?.trim() || "AI-powered solution for the described challenge",
-            benefits: "Improved efficiency and automation",
-            implementation: "Can be implemented using modern AI technologies"
+            prompt: match[0]?.trim() || match[1]?.trim() || "Create an AI solution"
           }));
           break;
         }
@@ -158,10 +156,7 @@ RESPONSE FORMAT (JSON only, no other text):
       // If no structured extraction worked, create a general response
       if (extractedUseCases.length === 0) {
         extractedUseCases = [{
-          title: "AI-Powered Solution",
-          // description: result.slice(0, 500) + "...",
-          // benefits: "Enhanced productivity and automation",
-          // implementation: "Implementation details provided in the analysis"
+          prompt: "Create an AI solution for your department"
         }];
       }
       
@@ -176,10 +171,7 @@ RESPONSE FORMAT (JSON only, no other text):
     if (!usecaseResponse.usecases || !Array.isArray(usecaseResponse.usecases)) {
       usecaseResponse = {
         usecases: [{
-          title: "AI Solution Analysis",
-          // description: result,
-          // benefits: "AI-powered improvements for your department",
-          // implementation: "Custom implementation based on your specific needs"
+          prompt: "Create an AI solution for your department"
         }]
       };
     }
@@ -194,10 +186,7 @@ RESPONSE FORMAT (JSON only, no other text):
       JSON.stringify({ 
         error: error.message,
         usecases: [{
-          title: "Error in Generation",
-          // description: "An error occurred while generating use cases: " + error.message,
-          // benefits: "Please try again",
-          // implementation: "N/A"
+          prompt: "Error generating use cases - please try again"
         }]
       }), 
       {

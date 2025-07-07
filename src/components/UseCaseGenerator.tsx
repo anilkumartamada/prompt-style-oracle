@@ -13,10 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 interface UseCase {
-  title: string;
-  description: string;
-  benefits: string;
-  implementation: string;
+  prompt: string;
 }
 
 interface UseCaseResponse {
@@ -69,8 +66,8 @@ const UseCaseGenerator = () => {
       setUsecases(response.usecases || []);
 
       toast({
-        title: "Use Cases Generated!",
-        description: `Generated ${response.usecases?.length || 0} AI use case ideas for ${department}.`,
+        title: "AI Prompts Generated!",
+        description: `Generated ${response.usecases?.length || 0} AI prompt ideas for ${department}.`,
       });
     } catch (error) {
       console.error('Error generating use cases:', error);
@@ -91,8 +88,8 @@ const UseCaseGenerator = () => {
     setIsSaving(true);
     try {
       const usecasesText = usecases.map((usecase, index) => 
-        `${index + 1}. ${usecase.title}\n\nDescription: ${usecase.description}\n\nBenefits: ${usecase.benefits}\n\nImplementation: ${usecase.implementation}`
-      ).join('\n\n---\n\n');
+        `${index + 1}. ${usecase.prompt}`
+      ).join('\n');
 
       const { error } = await supabase
         .from('usecase_generations')
@@ -101,20 +98,20 @@ const UseCaseGenerator = () => {
           department,
           task,
           generated_usecases: usecasesText,
-          title: `${department} - AI Use Cases`
+          title: `${department} - AI Prompts`
         });
 
       if (error) throw error;
 
       toast({
         title: "Saved Successfully",
-        description: "Your use cases have been saved to your history.",
+        description: "Your AI prompts have been saved to your history.",
       });
     } catch (error) {
       console.error('Error saving use cases:', error);
       toast({
         title: "Save Failed",
-        description: "Failed to save use cases. Please try again.",
+        description: "Failed to save AI prompts. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -126,19 +123,19 @@ const UseCaseGenerator = () => {
     navigator.clipboard.writeText(text);
     toast({
       title: "Copied!",
-      description: "Use case copied to clipboard.",
+      description: "AI prompt copied to clipboard.",
     });
   };
 
   const copyAllUseCases = () => {
     const allUseCases = usecases.map((usecase, index) => 
-      `${index + 1}. ${usecase.title}\n\nDescription: ${usecase.description}\n\nBenefits: ${usecase.benefits}\n\nImplementation: ${usecase.implementation}`
-    ).join('\n\n---\n\n');
+      `${index + 1}. ${usecase.prompt}`
+    ).join('\n');
     
     navigator.clipboard.writeText(allUseCases);
     toast({
-      title: "All Use Cases Copied!",
-      description: "All use cases have been copied to clipboard.",
+      title: "All Prompts Copied!",
+      description: "All AI prompts have been copied to clipboard.",
     });
   };
 
@@ -151,11 +148,11 @@ const UseCaseGenerator = () => {
             <Lightbulb className="h-6 w-6 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            Use Case Generator
+            AI Prompt Generator
           </h1>
         </div>
         <p className="text-lg text-muted-foreground">
-          Generate innovative AI use cases and solutions tailored to your department's specific challenges
+          Generate actionable AI prompts tailored to your department's specific challenges
         </p>
       </div>
 
@@ -168,7 +165,7 @@ const UseCaseGenerator = () => {
               Department & Task Details
             </CardTitle>
             <CardDescription>
-              Describe your department and the specific challenge or task you need AI solutions for
+              Describe your department and the specific challenge to get actionable AI prompts
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -198,10 +195,10 @@ const UseCaseGenerator = () => {
               </Label>
               <Textarea
                 id="task"
-                placeholder="Describe the specific task, challenge, or process that you want to improve with AI. Be as detailed as possible about the current situation and what you'd like to achieve..."
+                placeholder="Describe the specific task or challenge you want to solve with AI. Keep it concise to get focused prompt suggestions..."
                 value={task}
                 onChange={(e) => setTask(e.target.value)}
-                rows={6}
+                rows={4}
               />
             </div>
 
@@ -219,7 +216,7 @@ const UseCaseGenerator = () => {
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Generate Use Cases
+                  Generate AI Prompts
                 </>
               )}
             </Button>
@@ -231,15 +228,15 @@ const UseCaseGenerator = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              Generated AI Use Cases
+              Generated AI Prompts
               {usecases.length > 0 && (
                 <Badge variant="secondary" className="ml-2">
-                  {usecases.length} idea{usecases.length !== 1 ? 's' : ''}
+                  {usecases.length} prompt{usecases.length !== 1 ? 's' : ''}
                 </Badge>
               )}
             </CardTitle>
             <CardDescription>
-              AI-powered solutions tailored to your department's needs
+              Actionable AI prompts for your department
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -249,9 +246,9 @@ const UseCaseGenerator = () => {
                   <Lightbulb className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="font-medium text-muted-foreground">No Use Cases Yet</h3>
+                  <h3 className="font-medium text-muted-foreground">No AI Prompts Yet</h3>
                   <p className="text-sm text-muted-foreground">
-                    Enter your department and task details, then click "Generate Use Cases" to get AI-powered solution ideas
+                    Enter your department and task details, then click "Generate AI Prompts" to get actionable ideas
                   </p>
                 </div>
               </div>
@@ -284,42 +281,24 @@ const UseCaseGenerator = () => {
 
                 <Separator />
 
-                {/* Use Cases List */}
-                <div className="space-y-6 max-h-[600px] overflow-y-auto">
+                {/* AI Prompts List */}
+                <div className="space-y-3 max-h-[600px] overflow-y-auto">
                   {usecases.map((usecase, index) => (
-                    <div key={index} className="p-4 border border-border/50 rounded-lg space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            #{index + 1}
-                          </Badge>
-                          <h4 className="font-semibold text-sm">{usecase.title}</h4>
-                        </div>
-                        <Button
-                          onClick={() => copyToClipboard(`${usecase.title}\n\n${usecase.description}\n\nBenefits: ${usecase.benefits}\n\nImplementation: ${usecase.implementation}`)}
-                          variant="ghost"
-                          size="sm"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
+                    <div key={index} className="p-4 border border-border/50 rounded-lg flex items-center justify-between hover:bg-muted/30 transition-colors">
+                      <div className="flex items-center gap-3 flex-1">
+                        <Badge variant="outline" className="text-xs font-mono">
+                          #{index + 1}
+                        </Badge>
+                        <p className="font-medium text-foreground">{usecase.prompt}</p>
                       </div>
-
-                      <div className="space-y-3 text-sm">
-                        <div>
-                          <h5 className="font-medium text-foreground mb-1">Description</h5>
-                          <p className="text-muted-foreground">{usecase.description}</p>
-                        </div>
-
-                        <div>
-                          <h5 className="font-medium text-foreground mb-1">Benefits</h5>
-                          <p className="text-muted-foreground">{usecase.benefits}</p>
-                        </div>
-
-                        <div>
-                          <h5 className="font-medium text-foreground mb-1">Implementation</h5>
-                          <p className="text-muted-foreground">{usecase.implementation}</p>
-                        </div>
-                      </div>
+                      <Button
+                        onClick={() => copyToClipboard(usecase.prompt)}
+                        variant="ghost"
+                        size="sm"
+                        className="ml-2"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>
