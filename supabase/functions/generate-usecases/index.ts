@@ -30,31 +30,48 @@ serve(async (req) => {
     }
     console.log('✅ Gemini API key is configured');
 
-    const fullPrompt = `You are an AI solutions expert specializing in department-specific automation and innovation. Your task is to generate practical AI use cases for a specific department and their challenges.
+    // Department-specific context to guide AI generation  
+    const departmentContext = {
+      'marketing': 'Marketing departments focus on customer acquisition, engagement, campaign optimization, content creation, social media management, lead generation, brand awareness, and data-driven decision making.',
+      'human resources': 'HR departments handle recruitment, employee engagement, performance management, training, compliance, payroll, benefits administration, and organizational development.',
+      'finance': 'Finance departments manage budgeting, forecasting, expense tracking, financial reporting, compliance, accounts payable/receivable, and risk management.',
+      'operations': 'Operations departments oversee process optimization, supply chain management, quality control, resource allocation, project management, and operational efficiency.',
+      'it': 'IT departments handle system administration, cybersecurity, software development, infrastructure management, technical support, and digital transformation.',
+      'sales': 'Sales departments focus on lead conversion, customer relationship management, sales forecasting, pipeline management, territory planning, and revenue growth.',
+      'customer service': 'Customer service departments handle support ticket management, customer satisfaction, issue resolution, communication management, and service quality improvement.'
+    };
 
-Department: ${department}
-Task/Challenge: ${task}
+    const deptKey = department.toLowerCase();
+    const deptContext = departmentContext[deptKey] || departmentContext[Object.keys(departmentContext).find(key => deptKey.includes(key))] || 'This department focuses on core business operations and workflows.';
 
-Please analyze the department's function and the described task/challenge, then generate 3-5 tailored AI use case ideas that show how AI can improve, automate, or solve this specific challenge.
+    const fullPrompt = `You are an expert AI solutions consultant specializing in department-specific automation and digital transformation. Your mission is to generate practical, actionable AI use cases tailored to specific departmental needs and challenges.
 
-Focus on:
-- Department-specific solutions that understand the unique needs and workflows
-- Practical implementation that can realistically be deployed
-- Innovation and efficiency improvements
-- Clear, actionable ideas with specific AI technologies or approaches
-- Solutions that address the exact challenge described
+DEPARTMENT CONTEXT: ${department}
+${deptContext}
 
-Generate diverse use cases that cover different AI approaches (automation, analysis, prediction, optimization, etc.) when applicable.
+SPECIFIC CHALLENGE: ${task}
 
-Please provide your response in the following JSON format (return ONLY the JSON, no other text):
+INSTRUCTIONS:
+Generate 3-5 detailed, department-specific AI use case solutions that directly address the challenge described. Each use case must be:
+- Highly relevant to ${department} workflows and responsibilities
+- Practically implementable with current AI technologies
+- Directly solving or improving the specific challenge mentioned
+- Detailed enough to be actionable for decision-makers
+
+For each use case, provide:
+1. TITLE: Clear, role-specific name (e.g., "AI-Powered ${department} Solution for...")
+2. DESCRIPTION: Detailed explanation of the AI solution, specific technologies involved, and how it addresses the challenge
+3. BENEFITS: Concrete improvements, metrics, and value proposition
+4. IMPLEMENTATION: Practical steps, timeline, and resources needed
+
+RESPONSE FORMAT (JSON only, no other text):
 {
   "usecases": [
     {
-      "title": "Brief descriptive usecases based upon role",
-      
-      // "description": "Detailed explanation of the AI solution, including what AI technology would be used and how it addresses the specific challenge",
-      // "benefits": "Key benefits and improvements this solution would provide",
-      // "implementation": "Brief overview of how this could be implemented"
+      "title": "Specific AI solution title for ${department}",
+      "description": "Comprehensive explanation of the AI solution, including specific technologies (NLP, ML, computer vision, etc.), how it integrates with existing workflows, and how it directly solves the stated challenge",
+      "benefits": "Quantifiable benefits such as time savings, cost reduction, accuracy improvements, efficiency gains, and specific KPIs that will be impacted",
+      "implementation": "Step-by-step implementation approach, estimated timeline, required resources, potential challenges, and success metrics"
     }
   ]
 }`;

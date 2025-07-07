@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Lightbulb, Save, Copy, Loader2, Sparkles, Building, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +31,21 @@ const UseCaseGenerator = () => {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const departmentOptions = [
+    'Marketing',
+    'Human Resources',
+    'Finance',  
+    'Operations',
+    'Information Technology',
+    'Sales',
+    'Customer Service',
+    'Product Management',
+    'Engineering',
+    'Legal',
+    'Procurement',
+    'Research & Development'
+  ];
 
   const generateUseCases = async () => {
     if (!department.trim() || !task.trim()) {
@@ -159,14 +175,20 @@ const UseCaseGenerator = () => {
             <div className="space-y-2">
               <Label htmlFor="department" className="flex items-center gap-2">
                 <Building className="h-4 w-4" />
-                Department Name
+                Department
               </Label>
-              <Input
-                id="department"
-                placeholder="e.g., Human Resources, Marketing, Finance, Operations..."
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-              />
+              <Select value={department} onValueChange={setDepartment}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your department..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {departmentOptions.map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
